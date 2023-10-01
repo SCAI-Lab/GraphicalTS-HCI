@@ -1,0 +1,11 @@
+
+node_modules/
+__MACOSX/
+upload/
+package-lock.json
+.DS_Store
+*.pyc
+.vscode/
+.idea/
+dist/
+*.log

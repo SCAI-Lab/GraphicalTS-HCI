@@ -9,7 +9,7 @@
             <vs-select-item :key="item.key" :modelValue="item.modelValue" :text="item.text" v-for="item in comp_opts.typeOptions" ></vs-select-item>
           </vs-select>
 
-          <div id="category tools" v-if="nodeType==='categorical'">
+          <div id="category-tools" v-if="nodeType==='categorical'">
             <vs-chips color="rgb(145, 32, 159)" placeholder="Type Element Name and Hit Enter" v-model="valChips">
               <vs-chip
                 :key="chip"

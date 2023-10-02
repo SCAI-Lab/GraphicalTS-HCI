@@ -6,6 +6,7 @@
             <div>
                 <vs-select placeholder="Please select a graph" v-model="selectedGraph">
                  <vs-select-item :key="graph" :modelValue="graph" :text="graph" v-for="graph in graphs" />
+                 <vs-select-item :disabled="true"/>
                 </vs-select>
             </div>
             <div>

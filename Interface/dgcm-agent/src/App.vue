@@ -172,7 +172,7 @@
 
 <style scoped>
 #app {
-  font-family:'Courier New', Courier, monospace;
+  font-family:Arial, Helvetica, sans-serif;
   justify-content: center;
   padding: 20px;
 }

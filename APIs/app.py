@@ -79,7 +79,6 @@ def load_dgcm():
 def upload_file():
     if request.method in {'POST', 'OPTIONS'}:
         if 'file' not in request.files:
-            flash('No file part')
             return f"No file part", 400
         
         file = request.files['file']

@@ -178,7 +178,12 @@ export default {
       this._postEdgeChange(usrEdgeData).then(visEdgeData => {
         // data { from, to, lag, title, color, arrows }
         this._announceEdgeUpward(visEdgeData, usrEdgeData.edit_type);
-        this.last.callback(visEdgeData);
+        if (usrEdgeData.edit_type === 'add') {
+          this.network.body.data.edges.getDataSet().add(visEdgeData);
+        }
+        if (usrEdgeData.edit_type === 'edit') {
+          this.network.body.data.edges.getDataSet().update(visEdgeData);
+        }
       });
       
     },

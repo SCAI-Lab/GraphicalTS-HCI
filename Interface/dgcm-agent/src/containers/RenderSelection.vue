@@ -21,7 +21,7 @@
         
         
      </div>
-    <el-dialog title="Upload a new Graph" v-model:active="isUploading"><UploadZip @new-uploaded="handleNewUploadedGraph"/></el-dialog>
+    <el-dialog title="Upload a new Graph" v-model="isUploading"><UploadZip @new-uploaded="handleNewUploadedGraph"/></el-dialog>
   </template>
 
 <script>

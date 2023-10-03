@@ -2,50 +2,90 @@
   <div>
       <div class="node-options">
         
-          <label for="nodeName">Node Name</label>
-          <el-input placeholder="Placeholder" v-model="nodeName"/>
-          
-          <el-select v-model="nodeType">
-            <el-option :key="item.key" :value="item.modelValue" :text="item.text" v-for="item in typeOptions"></el-option>
-          </el-select>
+        <el-text tag="b">Basic Infomation</el-text>
+        
+        <div class="basic-tools">
+              <div class="flex-item">
+                  <el-text>Node Type:</el-text>
+                  <el-select v-model="nodeType" id="nodeType">
+                      <el-option :key="item.key" :value="item.modelValue" :text="item.text" v-for="item in typeOptions"></el-option>
+                  </el-select>
+              </div>
+              <div class="flex-item">
+                  <el-text>Node Name:</el-text>
+                  <el-input placeholder="Placeholder" v-model="nodeName"/>
+              </div>
+              
 
-          <div id="category-tools" v-if="nodeType==='categorical'">
-              <el-tag
-                :key="chip"
-                @close="_remove(chip)"
-                closable
-                class="mx-1"
-                :disable-transitions="false"
-                v-for="chip in valChips"
-                >
-              {{ chip }}
-            </el-tag>
-            <div class="input-button-wrapper">
-              <el-input
-                v-if="newItemInputVisible"
-                ref="newItemInput"
-                v-model="newItemInputValue"
-                size="small"
-                @keyup.enter="handleInputConfirm"
-                @blur="handleInputConfirm"
-              ></el-input>
-              <el-button v-else size="small" @click="showInput">
-                + New Value
-              </el-button>
+          </div>
+
+          <div v-if="nodeType==='categorical'">
+            <el-text tag="b">For Categorical Variables: Add Possible Values</el-text>
+            
+              <div class="category-tools">              
+                <el-tag
+                  :key="chip"
+                  @close="_remove(chip)"
+                  closable
+                  class="mx-1"
+                  :disable-transitions="false"
+                  v-for="chip in valChips"
+                  round
+                  >
+                  {{ chip }}
+                </el-tag>
+                <div class="input-button-wrapper">
+                  <el-input
+                    class="tag-input"
+                    v-if="newItemInputVisible"
+                    ref="newItemInput"
+                    v-model="newItemInputValue"
+                    size="small"
+                    @keyup.enter="handleInputConfirm"
+                    @blur="handleInputConfirm"
+                  ></el-input>
+                  <el-button v-else size="small" @click="showInput">
+                    + New Value
+                  </el-button>
+                </div>
+
             </div>
           </div>
+
           
-          <div id="range-tools" v-if="nodeType==='continuous'">
-            <el-input-number v-model="valRange[0]" :max="valRange[1]"></el-input-number>
-            <el-input-number v-model="valRange[1]" :min="valRange[0]"></el-input-number>
+          <div v-if="nodeType==='continuous'">
+                <el-text tag="b">For continuous Variable: What looks like a possible range?</el-text>
+
+                <div class="range-tools">            
+                  <div class="flex-item">
+                    <el-text size="small">Min</el-text>
+                    <el-input-number v-model="valRange[0]" :max="valRange[1]"></el-input-number>
+                  </div>
+
+                  <div class="flex-item">
+                      <el-text size="small">offset</el-text>
+                      <el-input-number v-model="valOffset" :max="valRange[1]" :min="valRange[0]"></el-input-number>
+                  </div>
+
+                  <div class="flex-item">
+                    <el-text size="small">Max</el-text>
+                    <el-input-number v-model="valRange[1]" :min="valRange[0]"></el-input-number>
+                  </div>
+                </div>
           </div>
 
 
-          <label for="memo">Memo for this Node</label>
-          <el-input type="textarea" id="memo" v-model="memo"></el-input>
+          <el-text tag='b' for="memo">Memo for this Node</el-text>
+          <el-input type="textarea"
+                id="memo" 
+                v-model="memo"
+                placeholder="(Optional) Further information about this edge..."></el-input>
 
-          <el-button @click="save">Save</el-button>
-          <el-button @click="cancel">Cancel</el-button>
+          <div class="control-tools">
+            <el-button @click="save">Save</el-button>
+            <el-button @click="cancel">Cancel</el-button>
+          </div>
+
       </div>
   </div>
 </template>
@@ -97,7 +137,7 @@ export default {
       return {
         nodeName: '',
         memo: '',
-        nodeType: 'continuous',
+        nodeType: '',
         is_todo: false,
 
         valRange: [0, 1], // continuous type  
@@ -229,5 +269,65 @@ export default {
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.range-tools{
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.flex-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: left;
+    margin: 10px;
+}
+
+
+.basic-tools {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.basic-tools label {
+    margin-bottom: 5px;
+}
+
+.basic-tools .input-container {
+    width: 100%;
+    flex-direction: column;
+}
+.category-tools {
+  display: flex;
+  flex-direction: row;
+  margin: 10px;
+  align-content: space-evenly;
+  justify-content: left;
+  flex-wrap: wrap;
+}
+
+.tag-container {
+  display: flex;
+  flex-direction: row;
+}
+.el-tag {
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+.input-button-wrapper {
+  min-width: 80px;
+}
+.tag-input{
+  width:100%
+}
+.control-tools {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
 }
 </style>

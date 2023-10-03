@@ -14,10 +14,16 @@
                   :initialChecked="edgesFilterValues[lag]" 
                   @checkbox-changed="updateFilterValues"
                 />
+
+                <el-checkbox
+                  v-model="all_checked"
+                  :indeterminate="isIndeterminate"
+                  @change="handleCheckAllChange"
+                  >Check all</el-checkbox
+                >
+
             </div>
           </div>
-          <vs-checkbox v-model="all_checked"  @change="toggleAll(true)">all</vs-checkbox>
-          <vs-checkbox v-model="none_checked" @change="toggleAll(false)">none</vs-checkbox>
         </div>
 
         <div id="network-container">
@@ -29,14 +35,13 @@
                        />
           
           <div id="control-panel">
-            <vs-row vs-justify="space-between">
               <RenderSelection ref="renderSelection"
                             @update-graph-info="handleGraphUpdate"/>
-              <vs-button color="danger" :disabled="!currentEdited">Export Current Graph</vs-button>
-          </vs-row>
+              <el-button color="danger" :disabled="!currentEdited">Export Current Graph</el-button>
+          
           </div>
         </div>
-        <vs-button color="danger">Show Perturbation</vs-button>
+        <el-button>Show Perturbation</el-button>
 
       </div>
 
@@ -78,8 +83,9 @@
 
 
         all_checked : false,
-        
-        none_checked : false
+
+        isIndeterminate: false,
+
       }
     },
 
@@ -137,21 +143,26 @@
       // from check boxes
       updateFilterValues(data) {
         this.edgesFilterValues[data.lag] = data.checkState;
+        this.all_checked = this.check_num === this.lags.length;
+        this.isIndeterminate = this.check_num > 0 && this.check_num < this.lags.length;
         this.$refs.networkView.handleFilterChange();
       },
 
-      toggleAll(isSelected) {
-        if (isSelected && !this.all_checked) {
+
+      handleCheckAllChange(val) {
+        
+        if (val) {
           this.lags.forEach(lag => {
             this.edgesFilterValues[lag] = true;
           });
         }
-        if (!isSelected && !this.none_checked) {
+        else {
           this.lags.forEach(lag => {
             this.edgesFilterValues[lag] = false;
           });
         }
-        
+
+        this.isIndeterminate = false;
       },
 
     }

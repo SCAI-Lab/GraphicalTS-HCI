@@ -3,33 +3,49 @@
       <div class="node-options">
         
           <label for="nodeName">Node Name</label>
-          <vs-input placeholder="Placeholder" v-model="nodeName"/>
+          <el-input placeholder="Placeholder" v-model="nodeName"/>
           
-          <vs-select v-model="nodeType">
-            <vs-select-item :key="item.key" :modelValue="item.modelValue" :text="item.text" v-for="item in comp_opts.typeOptions" ></vs-select-item>
-          </vs-select>
+          <el-select v-model="nodeType">
+            <el-option :key="item.key" :value="item.modelValue" :text="item.text" v-for="item in typeOptions"></el-option>
+          </el-select>
 
           <div id="category-tools" v-if="nodeType==='categorical'">
-            <vs-chips color="rgb(145, 32, 159)" placeholder="Type Element Name and Hit Enter" v-model="valChips">
-              <vs-chip
+              <el-tag
                 :key="chip"
-                @click="_remove(chip)"
-                v-for="chip in valChips" closable>
-                {{ chip }}
-              </vs-chip>
-            </vs-chips>
+                @close="_remove(chip)"
+                closable
+                class="mx-1"
+                :disable-transitions="false"
+                v-for="chip in valChips"
+                >
+              {{ chip }}
+            </el-tag>
+            <div class="input-button-wrapper">
+              <el-input
+                v-if="newItemInputVisible"
+                ref="newItemInput"
+                v-model="newItemInputValue"
+                size="small"
+                @keyup.enter="handleInputConfirm"
+                @blur="handleInputConfirm"
+              ></el-input>
+              <el-button v-else size="small" @click="showInput">
+                + New Value
+              </el-button>
+            </div>
           </div>
           
           <div id="range-tools" v-if="nodeType==='continuous'">
-            <vs-input-number :min="valRange[0]" :max="valRange[1]" :step=1></vs-input-number>
+            <el-input-number v-model="valRange[0]" :max="valRange[1]"></el-input-number>
+            <el-input-number v-model="valRange[1]" :min="valRange[0]"></el-input-number>
           </div>
 
 
           <label for="memo">Memo for this Node</label>
-          <vs-textarea id="memo" v-model="memo"></vs-textarea>
+          <el-input type="textarea" id="memo" v-model="memo"></el-input>
 
-          <vs-button @click="save">Save</vs-button>
-          <vs-button @click="cancel">Cancel</vs-button>
+          <el-button @click="save">Save</el-button>
+          <el-button @click="cancel">Cancel</el-button>
       </div>
   </div>
 </template>
@@ -40,7 +56,7 @@ export default {
     return {
       ...this.defaultNode(),
       edit_type: null,
-      comp_opts: this.defaultOptions()
+      ...this.defaultOptions()
     }
   },
 
@@ -72,6 +88,10 @@ export default {
     }
   },
 
+
+
+
+
   methods: {
     defaultNode() {
       return {
@@ -96,7 +116,10 @@ export default {
           { key: 1, modelValue: 'categorical', text: 'categorical' },
           { key: 0, modelValue: 'continuous', text: 'continuous' },
           { key: 2, modelValue: 'binary', text: 'binary' }
-        ]
+        ],
+        newItemInputVisible: false,
+        newItemInputValue: '',
+
       };
     },
 
@@ -119,11 +142,12 @@ export default {
 
     _setEditorState(dbNode, defaults) {
       this.nodeName = dbNode.id !== undefined ? dbNode.id : defaults.nodeName;
+      
       this.nodeType = dbNode.type !== undefined ? dbNode.type : defaults.nodeType;
       this.memo = dbNode.memo !== undefined ? dbNode.memo : defaults.memo;
       this.is_todo = dbNode.is_todo !== undefined ? dbNode.is_todo: defaults.is_todo;
 
-      this.valRange = dbNode.bounds !== undefined? dbNode.bounds: defaults.valRange;
+      this.valRange = dbNode.range !== undefined? dbNode.range: defaults.valRange;
       this.historicalEncode = dbNode.val_encode !== undefined ? dbNode.val_encode : defaults.historicalEncode;
       this.valChips = dbNode.val_encode !== undefined ? Object.keys(dbNode.val_encode): defaults.valChips;
       
@@ -158,9 +182,22 @@ export default {
     },
 
     _remove(item) {
-      this.valChips.splice(this.chips.indexOf(item), 1)
-    }
+      this.valChips.splice(this.valChips.indexOf(item), 1)
+    },
     
+    handleInputConfirm() {
+      if (this.newItemInputValue) {
+        this.valChips.push(this.newItemInputValue)
+      }
+      this.newItemInputVisible = false;
+      this.newItemInputValue = '';
+    },
+    showInput() {
+      this.newItemInputVisible = true;
+      this.$nextTick(() => {
+        this.$refs.newItemInput.focus();
+      })
+    }
 
   }
 };
@@ -180,5 +217,17 @@ export default {
 
 .input-group {
   margin-bottom: 15px;
+}
+
+.input-button-wrapper {
+    position: relative;
+    /* Set a minimum height based on your requirements */
+    min-height: 40px; 
+}
+
+.input-button-wrapper > * {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 </style>

@@ -1,37 +1,14 @@
-import { createApp } from 'vue';
+import { createApp } from 'vue'
+import ElementPlus from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
+
+import 'element-plus/dist/index.css'
 
 
-
-
-
-
-import Vuesax from 'vuesax3';
-import 'vuesax3/dist/vuesax.css'; //Vuesax styles
-import 'material-icons/iconfont/material-icons.css';
-
-
-
-
-
-import App from './App.vue';
-
-
+import App from './App.vue'
 
 const app = createApp(App)
 
-
-app.use(Vuesax, {
-    theme:{
-      colors:{
-        primary:'#5b3cc4',
-        success:'rgb(23, 201, 100)',
-        danger:'rgb(242, 19, 93)',
-        warning:'rgb(255, 130, 0)',
-        dark:'rgb(36, 33, 69)',
-      }
-    }
-  })
-
-
+app.use(ElementPlus)
+app.component(ArrowDown.name, ArrowDown)
 app.mount('#app')
-

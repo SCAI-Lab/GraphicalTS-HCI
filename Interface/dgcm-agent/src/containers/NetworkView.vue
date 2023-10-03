@@ -2,21 +2,21 @@
     <div ref="networkContainer" id="network-container">
     </div>
 
-    <vs-popup classContent="edge-popup-content" title="Edit Edge" v-model:active="isEdgeEditing" button-close-hidden=True>
+    <el-dialog title="Edit Edge" v-model="isEdgeEditing" @close="handleEdgeCancel">
       <EdgeEditor 
         ref="edgeEditor"
         @save-edge="handleEdgeSave" 
         @cancel-edge="handleEdgeCancel"
       />
-    </vs-popup>
+    </el-dialog>
 
-    <vs-popup title="Edit Node" v-model:active="isNodeEditing" button-close-hidden=True>
+    <el-dialog title="Edit Node" v-model="isNodeEditing" @close="handleNodeCancel">
       <NodeEditor
       ref="nodeEditor"
       @save-node="handleNodeSave"
       @cancel-node="handleNodeCancel"
       />
-    </vs-popup>
+    </el-dialog>
 
 </template>
   
@@ -102,6 +102,7 @@ export default {
     addNodePL(visNodeData, callback) {
       visNodeData.id=undefined; // dirty for vis-network
       this._popNodeDialog('add', visNodeData);
+
       this.last.callback = callback;
     },
 
@@ -118,18 +119,26 @@ export default {
     handleNodeSave(usrNodeData) {
       // additionalNodeInfo { edit_type, data }
       this._hideNodeDialog();
-
       this._postNodeChange(usrNodeData).then(visNodeData => {
         // data { id, title, color, ... }
-        this._announceNodeUpward(visNodeData, usrNodeData.edit_type)
-        this.last.callback(visNodeData);
+        this._announceNodeUpward(visNodeData, usrNodeData.edit_type);
+        console.log(visNodeData);
+        if (usrNodeData.edit_type === 'add') {
+          this.network.body.data.nodes.getDataSet().add(visNodeData);
+        }
+        if (usrNodeData.edit_type === 'edit') {
+          this.network.body.data.nodes.getDataSet().update(visNodeData);
+        }
+        
       });
     },
 
     handleNodeCancel() {
       this.isNodeEditing = false;
-      this.last.callback(null);
-      this.last.callback = null;
+      if (this.last.callback !== null) {
+        this.last.callback(null);
+      }
+
     },
     // #endregion
     // #################################
@@ -169,21 +178,22 @@ export default {
       this._postEdgeChange(usrEdgeData).then(visEdgeData => {
         // data { from, to, lag, title, color, arrows }
         this._announceEdgeUpward(visEdgeData, usrEdgeData.edit_type);
-
         this.last.callback(visEdgeData);
-        this.last.callback = null;
       });
       
     },
     
     handleEdgeCancel() {
       this._hideEdgeDialog();
-      this.last.callback(null);
-      this.last.callback = null;
+      if (this.last.callback !== null) {
+        this.last.callback(null);
+        this.last.callback = null;
+      }
     },
 
     handleEdgeDeletion(eid) {
       console.log(eid);
+      
     },
     // #endregion EDGE
     // #################################
@@ -253,26 +263,49 @@ export default {
       }
     },
 
-    _popEdgeDialog(editMode, edgeData) {
-      const uType = this._getTypeforNode(edgeData.from)
-      const vType = this._getTypeforNode(edgeData.to)
+    async _popEdgeDialog(editMode, edgeData) {
+
+      this.isEdgeEditing = true;
+
+      const uType = this._getTypeforNode(edgeData.from);
+      const vType = this._getTypeforNode(edgeData.to);
+
+      const promises = [];
 
       if (uType === 'categorical') {
-        this._postNodeAttr(edgeData.from).then(dbNodeAttr => {
-          edgeData.uValEncode = dbNodeAttr.val_encode;
-        });
+        promises.push(
+          this._postNodeAttr(edgeData.from).then(dbNodeAttrU => {
+            edgeData.uValEncode = dbNodeAttrU.val_encode;
+          })
+        );
+      }
+
+      if (uType === 'continuous') {
+        promises.push(
+          this._postNodeAttr(edgeData.from).then(dbNodeAttrU => {
+            edgeData.uRange = dbNodeAttrU.range;
+          })
+        );
       }
 
       if (vType === 'categorical') {
-        this._postNodeAttr(edgeData.to).then(dbNodeAttr => {
-          edgeData.vValEncode = dbNodeAttr.val_encode;
-        });
+        console.log("here!")
+        promises.push(
+          this._postNodeAttr(edgeData.to).then(dbNodeAttrV => {
+            edgeData.vValEncode = dbNodeAttrV.val_encode;
+          })
+        );
       }
 
-      this.$refs.edgeEditor.setData(uType, vType, edgeData);
-      this.$refs.edgeEditor.setEditMode(editMode);
+      // Wait for all promises to resolve
+      await Promise.all(promises);
 
-      this.isEdgeEditing = true;
+      this.$nextTick(() => {
+        console.log(edgeData)
+        this.$refs.edgeEditor.setData(uType, vType, edgeData);
+        this.$refs.edgeEditor.setEditMode(editMode);
+      });
+
     },
     
     _getTypeforNode(NodeID) {
@@ -284,10 +317,12 @@ export default {
     },
 
     _popNodeDialog(editMode, dbNodeData) {
-      this.$refs.nodeEditor.setData(dbNodeData);
-      this.$refs.nodeEditor.setEditMode(editMode);
-
       this.isNodeEditing = true;
+
+      this.$nextTick(() => {      
+        this.$refs.nodeEditor.setData(dbNodeData);
+        this.$refs.nodeEditor.setEditMode(editMode);
+      });
     },
 
     _hideNodeDialog() {
@@ -317,17 +352,8 @@ export default {
     
     // #################################
     // #region dirty
-    addEdgeCallback(finalizedData) {
-          if (
-            finalizedData !== null &&
-            finalizedData !== undefined
-          ) {
-            // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-            this.network.body.data.edges.getDataSet().add(finalizedData);
-            this.network.selectionHandler.unselectAll();
-            this.network.showManipulatorToolbar();
-          }
-      },
+
+
       // #endregion
     // #################################
   }

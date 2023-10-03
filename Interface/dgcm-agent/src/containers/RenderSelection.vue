@@ -4,16 +4,16 @@
     <div class="row-container">
         <div class="left-group">
             <div>
-                <vs-select placeholder="Please select a graph" v-model="selectedGraph">
-                 <vs-select-item :key="graph" :modelValue="graph" :text="graph" v-for="graph in graphs" />
-                 <vs-select-item :disabled="true"/>
-                </vs-select>
+                <el-select placeholder="Please select a graph" v-model="selectedGraph">
+                    <el-option :key="graph" :value="graph" v-for="graph in graphs" />
+                    
+                </el-select>
             </div>
             <div>
-                <vs-button style="width:120px" :disabled="selectedGraph===''" @click="sendGraphToModerator">Render Selected</vs-button>
+                <el-button style="width:120px" :disabled="selectedGraph===''" @click="sendGraphToModerator">Render Selected</el-button>
             </div>
             <div>
-                <vs-button style="width:120px" @click="isUploading=true">Upload New</vs-button>
+                <el-button style="width:120px" @click="isUploading=true">Upload New</el-button>
             </div>
         </div>
     </div>
@@ -21,7 +21,7 @@
         
         
      </div>
-    <vs-popup title="Upload a new Graph" v-model:active="isUploading"><UploadZip @new-uploaded="handleNewUploadedGraph"/></vs-popup>
+    <el-dialog title="Upload a new Graph" v-model:active="isUploading"><UploadZip @new-uploaded="handleNewUploadedGraph"/></el-dialog>
   </template>
 
 <script>

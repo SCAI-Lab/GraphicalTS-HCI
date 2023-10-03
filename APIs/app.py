@@ -154,9 +154,9 @@ def add_node():
     response_data = {"id": n, 
                      "label": n, 
                      "title": str(mem_dgcm.nodes[n]), 
+                     "type": mem_dgcm.nodes[n]['type'],
                      "shape": 'circle',
-                     "mass": 0.5,
-                     "color": 'red'}
+                     "mass": 0.5,}
     
     return jsonify(response_data), 200
 
@@ -178,7 +178,7 @@ def get_node():
 def update_node():
     global mem_dgcm
     data = request.get_json()
-    if not check_args_fulfilled(data, 'nodeName', 'attr'):
+    if 'nodeName' not in data:
         return 'Error: Missing parameters nodeName in the request JSON.', 400
     
     n = data['nodeName']
@@ -186,7 +186,8 @@ def update_node():
     
     response_data = {"id": n, 
                      "label": n, 
-                     "title": mem_dgcm.nodes[n], 
+                     "title": mem_dgcm.nodes[n],
+                     "type": mem_dgcm.nodes[n]['type'],
                      "shape": 'circle',
                      "mass": 0.5}
     return jsonify(response_data), 200

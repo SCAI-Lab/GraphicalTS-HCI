@@ -1,9 +1,7 @@
 <template>
     <div id="upload-container">
-      <vs-row vs-justify="center">
-      <vs-col vs-type="flex" vs-justify="center" vs-align="center" vs-w="6"><input type="file" @change="onFileChange" ref="fileInput"></vs-col>
-      <vs-col vs-type="flex" vs-justify="center" vs-w="3"><vs-button @click="uploadFile" :disabled="!selectedFile">Upload</vs-button></vs-col>
-      </vs-row>
+      <input type="file" @change="onFileChange" ref="fileInput">
+      <el-button @click="uploadFile" :disabled="!selectedFile">Upload</el-button>
       <p v-if="uploadStatus">{{ uploadStatus }}</p>
     </div>
   </template>

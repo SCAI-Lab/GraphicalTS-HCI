@@ -93,7 +93,7 @@
             <el-input type="textarea"
                   id="memo" 
                   v-model="memo"
-                  placeholder="(Optional) Further information about this edge..."></el-input>
+                  placeholder="(Optional) Further information about this node..."></el-input>
 
             <div class="control-tools">
               <el-button @click="save">Save</el-button>

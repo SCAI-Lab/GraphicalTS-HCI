@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="flex-container">
-      <vs-input-number v-model="simLength" min="0"></vs-input-number>
-      <vs-button class="simple-button" @click="getDataAndPlot">Simulate</vs-button>
+      <el-input-number v-model="simLength" :min="0" :step="50"></el-input-number>
+      <el-button @click="getDataAndPlot">Simulate</el-button>
     </div>
     <div id="simOutput">
       <div ref="plotlyChart"></div>

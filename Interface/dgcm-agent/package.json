@@ -10,11 +10,10 @@
   "dependencies": {
     "axios": "^1.4.0",
     "core-js": "^3.8.3",
+    "element-plus": "^2.3.14",
     "plotly.js": "^2.26.1",
     "vis-network": "^9.1.6",
-    "vue": "^3.2.13",
-    "material-icons": "^1.13.12",
-    "vuesax3": "^4.2.1"
+    "vue": "^3.2.13"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -46,5 +45,3 @@
     "not ie 11"
   ]
 }
-
-

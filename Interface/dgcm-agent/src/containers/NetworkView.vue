@@ -2,7 +2,16 @@
     <div ref="networkContainer" id="network-container">
     </div>
 
-    <el-dialog title="Edit Edge" v-model="isEdgeEditing" @close="handleEdgeCancel">
+    <el-dialog v-model="isEdgeEditing" @close="handleEdgeCancel" :show-close="false" width="40%">
+      <template #header="{ close, titleId, titleClass }">
+        <div class="my-header">
+          <h2 :id="titleId" :class="titleClass">Edit Edge from <i>"{{ currentU }}"</i> to <i>"{{ currentV }}"</i></h2>
+          <el-button type="danger" @click="close">
+            <el-icon class="el-icon--left"><CircleCloseFilled /></el-icon>
+            Close
+          </el-button>
+        </div>
+      </template>
       <EdgeEditor 
         ref="edgeEditor"
         @save-edge="handleEdgeSave" 
@@ -10,7 +19,16 @@
       />
     </el-dialog>
 
-    <el-dialog title="Edit Node" v-model="isNodeEditing" @close="handleNodeCancel">
+    <el-dialog v-model="isNodeEditing" @close="handleNodeCancel" :show-close="false" width="40%">
+      <template #header="{ close, titleId, titleClass }">
+        <div class="my-header">
+          <h2 :id="titleId" :class="titleClass">Edit Node</h2>
+          <el-button type="danger" @click="close">
+            <el-icon class="el-icon--left"><CircleCloseFilled /></el-icon>
+            Close
+          </el-button>
+        </div>
+      </template>
       <NodeEditor
       ref="nodeEditor"
       @save-node="handleNodeSave"
@@ -49,7 +67,10 @@ export default {
       
       last: {
         callback: null
-      }
+      },
+
+      currentU: '',
+      currentV: '',
     }
   },
 
@@ -146,11 +167,17 @@ export default {
     // #################################
     // #region EDGE
     addEdgePL(visEdgeData, callback) {
+      this.currentU = visEdgeData.from;
+      this.currentV = visEdgeData.to;
+
       this._popEdgeDialog('add', visEdgeData);
       this.last.callback = callback; 
     },
 
     editEdgePL(visEdgeData, callback) {
+      this.currentU = visEdgeData.from;
+      this.currentV = visEdgeData.to;
+
       const eid = visEdgeData.id;
 
       const lag = this.network.body.data.edges.getDataSet().get(eid).lag;
@@ -373,5 +400,15 @@ export default {
   border-radius: 20px;
 }
 
+.my-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.el-dialog__body {
+    padding-top: 0px;
+}
 
 </style>

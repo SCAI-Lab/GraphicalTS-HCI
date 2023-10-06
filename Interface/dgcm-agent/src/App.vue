@@ -37,11 +37,11 @@
           <div id="control-panel">
               <RenderSelection ref="renderSelection"
                             @update-graph-info="handleGraphUpdate"/>
-              <el-button color="danger" :disabled="!currentEdited">Export Current Graph</el-button>
+              <!-- <el-button color="danger" :disabled="!currentEdited">Export Current Graph</el-button> -->
           
           </div>
         </div>
-        <el-button>Show Perturbation</el-button>
+        
 
       </div>
 

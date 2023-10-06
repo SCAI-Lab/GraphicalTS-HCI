@@ -1,26 +1,40 @@
 <template>
   <div>
       <div class="node-options">
-        
-        <el-text tag="b">Basic Infomation</el-text>
-        
-        <div class="basic-tools">
-              <div class="flex-item">
-                  <el-text>Node Type:</el-text>
-                  <el-select v-model="nodeType" id="nodeType">
-                      <el-option :key="item.key" :value="item.modelValue" :text="item.text" v-for="item in typeOptions"></el-option>
-                  </el-select>
-              </div>
-              <div class="flex-item">
-                  <el-text>Node Name:</el-text>
-                  <el-input placeholder="Placeholder" v-model="nodeName"/>
-              </div>
-              
+          <div class="basic-tools">
+            <h3>Basic Infomation</h3>
+            <el-row style="justify-items: center;">
+                  <el-col :span="5"><el-text>Node Name:</el-text></el-col>
+                  <el-col :span="8">
+                    <el-input 
+                    placeholder="Placeholder" 
+                    v-model="nodeName" :disabled="edit_type==='edit'" 
+                    @input="() => { this.alertShow=(this.nodeName==='');
+                                    this.alertMsg='Node name cannot be empty';
+                                  }"/>
+                  </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="5"><el-text>Node Type:</el-text></el-col>
+                  <el-col :span="19">
+                    <el-radio-group v-model="nodeType">
+                      <el-radio label="continuous"/>
+                      <el-radio label="categorical"/>
+                      <el-radio label="binary"/>
+                    </el-radio-group>
+              </el-col>
+            </el-row>
 
+                  
+                  <!-- <el-select v-model="nodeType" id="nodeType">
+                      <el-option :key="item.key" :value="item.modelValue" :text="item.text" v-for="item in typeOptions"></el-option>
+                  </el-select> -->
+              
           </div>
 
+
           <div v-if="nodeType==='categorical'">
-            <el-text tag="b">For Categorical Variables: Add Possible Values</el-text>
+            <h3>For Categorical Variables: Add Possible Values</h3>
             
               <div class="category-tools">              
                 <el-tag
@@ -54,7 +68,7 @@
 
           
           <div v-if="nodeType==='continuous'">
-                <el-text tag="b">For continuous Variable: What looks like a possible range?</el-text>
+                <h3>Range for continuous variable</h3>
 
                 <div class="range-tools">            
                   <div class="flex-item">
@@ -74,29 +88,37 @@
                 </div>
           </div>
 
+          <div class="common-end">
+            <h3>Memo for this Node</h3>
+            <el-input type="textarea"
+                  id="memo" 
+                  v-model="memo"
+                  placeholder="(Optional) Further information about this edge..."></el-input>
 
-          <el-text tag='b' for="memo">Memo for this Node</el-text>
-          <el-input type="textarea"
-                id="memo" 
-                v-model="memo"
-                placeholder="(Optional) Further information about this edge..."></el-input>
-
-          <div class="control-tools">
-            <el-button @click="save">Save</el-button>
-            <el-button @click="cancel">Cancel</el-button>
+            <div class="control-tools">
+              <el-button @click="save">Save</el-button>
+              <el-button @click="cancel">Cancel</el-button>
+            </div>
           </div>
+          <div style="margin-top: 10px" v-show="alertShow">
+            <el-alert title="Invalid Input" :description="alertMsg" type="error" show-icon  @close="() => { this.alertShow = false }"/>
+          </div>
+          
+
 
       </div>
   </div>
 </template>
 
 <script>
+import { ElMessage } from 'element-plus'
 export default {
   data() {
     return {
       ...this.defaultNode(),
       edit_type: null,
-      ...this.defaultOptions()
+      ...this.defaultOptions(),
+      nodeFormData: this.defaultNode(),
     }
   },
 
@@ -131,7 +153,6 @@ export default {
 
 
 
-
   methods: {
     defaultNode() {
       return {
@@ -143,7 +164,6 @@ export default {
         valRange: [0, 1], // continuous type  
         valOffset: 0,
 
-
         historicalEncode: {},
         valChips: []
         
@@ -152,19 +172,17 @@ export default {
 
     defaultOptions() {
       return {
-        typeOptions:  [       
-          { key: 1, modelValue: 'categorical', text: 'categorical' },
-          { key: 0, modelValue: 'continuous', text: 'continuous' },
-          { key: 2, modelValue: 'binary', text: 'binary' }
-        ],
         newItemInputVisible: false,
         newItemInputValue: '',
+        alertShow: false,
+        alertMsg: ''
 
       };
     },
 
     setData(dbNode) {
       const defaults = this.defaultNode();
+      this.resetOptions();
       this._setEditorState(dbNode, defaults);
     },
 
@@ -173,11 +191,28 @@ export default {
     },
 
     save() {
+      if (this.nodeType === '') {
+        ElMessage({
+          showClose: true,
+          message: 'Node type cannot be empty',
+          type: 'error',
+        })
+        return
+      } 
+      if (this.nodeName === '') {
+        ElMessage({
+          showClose: true,
+          message: 'Node name cannot be empty',
+          type: 'error',
+        })
+        return 
+      }
       this.$emit('save-node', this._constructSavingData());
     },
 
     cancel() {
-      this.$emit('cancel-node');
+
+      this.$emit('cancel-node'); 
     },
 
     _setEditorState(dbNode, defaults) {
@@ -237,8 +272,14 @@ export default {
       this.$nextTick(() => {
         this.$refs.newItemInput.focus();
       })
-    }
+    },
 
+    resetOptions() {
+      const dopts = this.defaultOptions()
+      Object.keys(dopts).forEach((key) => {
+        this[key] = dopts[key];
+      });
+    },
   }
 };
 </script>
@@ -279,7 +320,7 @@ export default {
 
 .flex-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: left;
     margin: 10px;
@@ -287,9 +328,9 @@ export default {
 
 
 .basic-tools {
-    display: flex;
     align-items: center;
     justify-content: left;
+    flex-direction: column;
 }
 
 .basic-tools label {
@@ -318,6 +359,11 @@ export default {
   margin-bottom: 5px;
 }
 
+.el-row {
+  margin-bottom: 20px;
+}
+
+
 .input-button-wrapper {
   min-width: 80px;
 }
@@ -330,4 +376,15 @@ export default {
   flex-direction: row;
   justify-content: right;
 }
+
+.el-text {
+  align-self: center;
+  justify-self: center;
+}
+.el-col {
+  display: flex;
+  justify-content: left;
+}
+
+
 </style>

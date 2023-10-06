@@ -1,153 +1,244 @@
 <template>
   <div>
-    <div class="common-options">
-      <div id="lag-tools">
-        <label >Lag: </label>        
-        <el-input-number v-model="lag" :min="0" :step="1"></el-input-number>
-        <label >(sec.) </label>     
-      </div>
-      
-      <div id="input-len-tools">
-        <label >Input Length: </label>    
-        <el-input-number v-model="input_len" :min="1"></el-input-number>   
+
+    <div id="basic-info">
+      <div class="common-options">
+        <h3>Basic Infomation</h3>
+        <el-row style="justify-items: center;">
+          <el-col :span="5">
+            <el-text>Lag:</el-text>
+          </el-col>
+          <el-col :span="16">
+            <el-input-number v-model="lag" :min="0" :step="1" controls-position="right"></el-input-number>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="5">
+            <el-text>Input Length:</el-text>
+          </el-col>
+          <el-col :span="16">
+            <el-input-number v-model="input_len" :min="1" controls-position="right" :disabled="!vCon"></el-input-number>
+          </el-col>
+        </el-row>
+
       </div>
     </div>
 
+    <div id="comb-options">
 
+      <div class="common-options" v-if="vCon">
+        <h3>Options for Mapping to a Continuous Variable</h3>
+        <div id="scale-sign-tools" >
+          <el-row>
+            <el-col :span="5">
+              <el-text>Effect Direction:</el-text>
+            </el-col>
+            <el-col :span="16">
+              <el-radio-group v-model="scaleSign">
+                <el-radio label="+">Positive Effect</el-radio>
+                <el-radio label="-">Negative Effect</el-radio>
+              </el-radio-group>
+            </el-col>
+          </el-row>
+        </div>
 
-    <div class="other-options">
-      <div id="effect-type-tools" v-if="vCon">
-        <el-select label="Effect Type" v-model="scaleSign">
-          <el-option
-            v-for="item in comp_opts.sign_options" 
-            :key="item.key" 
-            :value="item.modelValue" 
-            :label="item.text">
-          </el-option>
-        </el-select>  
-      </div>
+        <div id="scale-val-tools" >
+          <el-row>
+            <el-col :span="5">
+              <el-text>Effect Scale:</el-text>
+            </el-col>
+            <el-col :span="8">
+              <el-button @click="changeSign">
+                <el-icon>
+                  <Plus v-if="scaleSign==='+'" />
+                  <Minus v-if="scaleSign==='-'" />
+                </el-icon>
+              </el-button>
+              <el-input-number v-model="absScale" :min="0" :max="100" v-bind="comp_opts.scale_num_input"
+                controls-position="right">
+              </el-input-number>
+            </el-col>
 
-      <div id="scale-edit-tools" v-if="vCon">
-        <label for="scale-value-label">Scale:</label>      
-        <el-input-number v-model="absScale" :min="0" :max="100" v-bind="comp_opts.scale_num_input"></el-input-number>
-      </div>
+          </el-row>
+        </div>
 
-      <div id="effect-mode-tools" v-if="vCon">
-        <el-select label="Effect Mode" v-model="mode">
-          <el-option :key="index" :value="item.value" :label="item.text" v-for="item,index in comp_opts.mode_options" />
-        </el-select>  
-      </div>
+        <div id="effect-mode-tools" >
+          <el-row>
+            <el-col :span="5">
+              <el-text>Setting Mode:</el-text>
+            </el-col>
+            <el-col :span="19">
+              <el-radio-group v-model="mode">
+                <el-radio v-for="item,index in comp_opts.mode_options" :key="index" :label="item.value">
+                  {{ item.text }}
+                </el-radio>
+              </el-radio-group>
+            </el-col>
+          </el-row>
 
-      <div id="mapping-tools" v-if="uCatVCat">
-        <el-container class="m-4" v-for="(uenc, label) in uValEncode" :key="uenc">
-          <el-aside>{{ label }} {{ uenc  }}</el-aside>
-          
-            <el-main>            
-              <el-select
-                v-model="mapping[uenc]"
-                placeholder="Select"
-                style="width: 240px"
-              >
-              <el-option
-                v-for="(venc, label) in vValEncode"
-                :key="venc"
-                :label="label"
-                :value="venc"
-              />
-            </el-select>
-          </el-main>
-        </el-container>
-      </div>
+        </div>
 
-      <div id="target-value-tools" v-if="uBinVCat">
-        <el-select label="Effect Mode" v-model="target_value">
-          <el-option
-              v-for="(key, value) in uValEncode"
-              :key="value"
-              :value="value"
-              :label="key"
-            />
-        </el-select>
-      </div>
+        <div id="effect-len-tools">
+          <el-row>
+            <el-col :span="5">
+              <el-text>Effect Duration:</el-text>
+            </el-col>
+            <el-col :span="8">
+              <el-input-number v-model="effect_len" :min="0" :max="100" controls-position="right">
+              </el-input-number>
+            </el-col>
 
-
-
-      <div class="spectrum-tools" v-if="uConVCat">
-        <div class="flex-container">
-          <el-text class="mx-1" size="small">{{ spectrum[0] }}</el-text>
-    
-          <div v-for="(vInd, index) in Array.from({ length: spectrum.length-2 }, (_, i) => 1 + i)" :key="index">
-            <el-dropdown size="small">
-                <span class="el-dropdown-link">
-                  {{ spectrum[vInd] }}
-                  <el-icon class="el-icon--right">
-                    <arrow-down/>
-                  </el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item disabled>
-                      <div class="slider-container">
-                        <el-slider 
-                        :min="spectrum[vInd-1]"
-                        v-model="spectrum[vInd]" 
-                        :max="spectrum[vInd+1]"
-                        :marks="_getSeptrumSepMarkers(vInd)" />
-                      </div>
-                     </el-dropdown-item>
-                </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-            
-          
-          
-          <el-text class="mx-1" size="small">{{ spectrum[spectrum.length-1] }}</el-text>
+          </el-row>
         </div>
       </div>
 
+      <div class="common-options" v-if="uCatVCat">
+        <h3>Options for Categorical to Categorical Edge</h3>
+        <div id="mapping-tools">
+          <el-row> 
+            <el-col :span="8" style="justify-content: center;">{{ u }}</el-col>
+            <el-col :span="2"></el-col>
+            <el-col :span="11" style="justify-content: center;">{{ v }}</el-col>
+          </el-row>
+          <el-row v-for="(uenc, label) in uValEncode" :key="uenc">
+            <el-col :span="8" style="justify-content: center;"><el-text>{{ label }}</el-text></el-col>
+            <el-col :span="2" style="align-items: center; justify-content: center;"><el-icon><Right/></el-icon></el-col>
+            <el-col :span="11">
+              <el-select v-model="mapping[uenc]" placeholder="Select" style="width: 240px">
+                <el-option v-for="(venc, label) in vValEncode" :key="venc" :label="label" :value="venc" />
+              </el-select>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
 
+      <div class="common-options" v-if="uBinVCat">
+        <div id="target-value-tools">
+          <el-select label="Effect Mode" v-model="target_value">
+            <el-option v-for="(key, value) in uValEncode" :key="value" :value="value" :label="key" />
+          </el-select>
+        </div>
+      </div>
 
+      <div class="common-options" v-if="uConVCat">
+        <h3>Options for Mapping Continuous to Categorical</h3>
+        <div class="spectrum-tools">
+          <div class="flex-container">
+            <el-row :gutter="5" style="justify-content: center;">
+              <el-col :span="3"><el-text class="mx-1" size="small">{{ uRange[0] }}</el-text></el-col>
+              <el-col v-for="_, index in mapping" 
+                      :key="index" 
+                      :span="index < spectrum.length? Math.round(38/(2*Object.keys(mapping).length - 1)): 
+                                                      Math.round(19/(2*Object.keys(mapping).length - 1)) ">
 
-      <div id="bounds-tools" v-if="uConVBin">
-        <el-container>
-          <el-main style="padding: 3rem">
-            <el-slider v-model="lowUp" range :step="comp_opts.lowUpStep" :min="uRange[0]" :max="uRange[1]" :marks="lowUpMarks"/>
-          </el-main>
-        </el-container>
+                <el-col :span="index < spectrum.length? 12 : 24">
+                  <el-select v-model="mapping[index]" @change="(value) => {
+                    console.log(value);
+                  }">
+                    <el-option
+                      v-for="(cItem, cInd) in keysToLocate"
+                      :key="cInd"
+                      :label="cItem"
+                      :value="cItem"
+                    />
+                  </el-select>
+                </el-col>
+
+                <el-col :span="12" v-if="index < spectrum.length">
+                  <el-dropdown size="small">
+                    <span class="el-dropdown-link">
+                      {{ spectrum[parseInt(index)] }}
+                      <el-icon class="el-icon--right">
+                        <arrow-down />
+                      </el-icon>
+                    </span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item disabled>
+                          <div class="slider-container">
+                            <el-slider :min="parseInt(index) === 0? uRange[0]: spectrum[parseInt(index)-1]" 
+                                      v-model="spectrum[parseInt(index)]" 
+                                      :max="parseInt(index) === spectrum.length-1? uRange[1]: spectrum[parseInt(index)+1]"
+                                      :marks="_getSeptrumSepMarkers(parseInt(index))"
+                                      :step="0.01"
+                              />
+                          </div>
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </el-col>
+
+              </el-col>
+              <el-col :span="3"><el-text class="mx-1" size="small">{{ uRange[1] }}</el-text></el-col>
+            </el-row>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="common-options" v-if="uConVBin">
+        <h3>Options for Mapping Continuous to Binary</h3>
+        <div id="bounds-tools">
+          <el-row>
+            <el-col :span="24">Range of Activation: <b>{{ lowUp[0] }} ~ {{ lowUp[1] }}</b>  (slide to adjust)</el-col>
+          </el-row>
+          <el-row style="padding-left:10px; padding-right:10px;">
+            <el-slider v-model="lowUp" range :step="comp_opts.lowUpStep" :min="uRange[0]" :max="uRange[1]"
+                :marks="lowUpMarks" />
+          </el-row>
+
+        </div>
+      </div>
+
+      <div class="common-options" v-if="uBinVBin">
+        <h3>Options for Mapping Binary to Binary</h3>
+        <div id="flip-tools">
+          <el-row>
+            <el-col :span="8"><el-text>Opposite Trigger ?</el-text></el-col>
+            <el-col :span="8">          
+              <el-radio-group v-model="flip" >
+                <el-radio :label="true">Yes</el-radio>
+                <el-radio :label="false">No</el-radio>
+              </el-radio-group>
+            </el-col>
+          </el-row>
+
+        </div>
+      </div>
+
+      <div class="common-options" v-if="uCatVBin">
+        <h3>Options for Mapping Categorical to Binary</h3>
         
-      </div>
-
-      <div id="flip-tools" v-if="uBinVBin">
-        <el-checkbox v-model="flip"></el-checkbox>
-      </div>
-
-      <div id="category-tools" v-if="uCatVBin">
-        <el-checkbox
-          v-for="key in Object.keys(categoryBools)"
-          :key="key"
-          v-model="categoryBools[key]"
-        >{{ key }}</el-checkbox>
+        <div id="category-tools">
+          <el-row><el-text>Please check the cateogories of <b>{{ u }}</b> that triggers  <b>{{ v }}</b></el-text></el-row>
+          <el-row><el-checkbox v-for="key in Object.keys(categoryBools)" :key="key" v-model="categoryBools[key]">{{ key }}
+          </el-checkbox></el-row>
+        </div>
       </div>
 
     </div>
-      
     
-    <div class="common-end">
-      <el-input type="textarea"
-                id="memo" 
-                v-model="memo"
-                placeholder="(Optional) Further information about this edge..."></el-input>
-      <el-checkbox v-model="is_todo" >Mark as TODO</el-checkbox>
-      <el-button @click="save">Save</el-button>
-      <el-button @click="cancel">Cancel</el-button>
+
+    <div id="common-end">
+      <div class="common-options">
+        <h3>Memo for this Node</h3>
+        <el-input type="textarea" id="memo" v-model="memo" placeholder="(Optional) Further information about this edge...">
+        </el-input>
+
+        <div class="control-tools">
+            <el-button @click="save" type="primary">Save</el-button>
+            <el-button @click="cancel">Cancel</el-button>
+        </div>
+      </div>
+
     </div>
-      
 
   </div>
 </template>
 
 <script>
+
 
 export default {
 
@@ -161,15 +252,25 @@ export default {
 
   computed: {
     scale() {
-      return this.absScale * this.scaleSign;
+      const signFactor = this.scaleSign === '+'? 1 : -1;
+      return this.absScale * signFactor;
     },
+    
     lowUpMarks() {
-      return this.uRange.reduce((acc, curr) => {
+      const marks = this.uRange.reduce((acc, curr) => {
         acc[curr] = {
           label: curr.toString()
         }
         return acc;
       }, {});
+
+      if ( this.uRange[0] < 0 ) {
+        marks['0'] = {
+          label: '0',
+        }
+      }
+
+      return marks;
     }
 
   },
@@ -190,7 +291,7 @@ export default {
         effect_len: 1,
         absScale: 1,
         mode: 'grad', // 'value', 'add', 'diff', 'grad'
-        scaleSign: 1,
+        scaleSign: '+',
 
         // u Cat
         uValEncode: {}, // { 'valueue-number-input encode }
@@ -207,6 +308,7 @@ export default {
         uRange: [-999.999, 999.999],
         uConVCat: false, // continous to categorical
         spectrum: [],    // spliter values between the range of variable u
+        keysToLocate: [],
 
         uConVBin: false,
         lowUp: [-999.999, 999.999],  // continuous to binary
@@ -319,7 +421,7 @@ export default {
       // #region  vType = continuous
       const dbScale = dbEdge.scale !== undefined ? dbEdge.scale : defaults.scale;
       this.absScale = Math.abs(dbScale);
-      this.scaleSign = dbScale >= 0? 1 : -1
+      this.scaleSign = dbScale >= 0? '+' : '-'
       this.mode = dbEdge.mode !== undefined ? dbEdge.mode : defaults.mode;
       this.effect_len = dbEdge.effect_len !== undefined ? dbEdge.effect_len : defaults.effect_len;
       // #endregion
@@ -329,7 +431,7 @@ export default {
       this.uValEncode = dbEdge.uValEncode !== undefined ? dbEdge.uValEncode : defaults.uValEncode;
       
 
-      // u Cat v Con
+      // u Cat v Cat
       this.mapping = dbEdge.mapping !== undefined ? dbEdge.mapping : this._getNullMappingForU();
       console.log(this.mapping);
       
@@ -342,14 +444,18 @@ export default {
       this.uRange = dbEdge.uRange !== undefined ? dbEdge.uRange : defaults.uRange;
       if (dbEdge.spectrum !== undefined) {
         this.spectrum = dbEdge.spectrum;
-        this.uRange = [this.spectrum[0], this.spectrum[this.spectrum.length - 1]] // TODO: warn about this
       }
       else {
         console.log(this.vValEncode)
         console.log(dbEdge.vValEncode)
         this.spectrum = this._splitRangeWithBounds(this.uRange, Object.keys(this.vValEncode).length);
       }
+      if (Object.keys(this.mapping).length === 0 && this.uConVCat) {
+        this.mapping = this._getSepDefaultMapping(this.spectrum.length+1);
+      }
+      this.keysToLocate = Object.keys(this.vValEncode);
       console.log(this.spectrum);
+      console.log(this.mapping);
       
 
       // u Con v Bin
@@ -405,6 +511,7 @@ export default {
 
       if (this.uConVCat) {
         attr.spectrum = this.spectrum;
+        attr.mapping = this.mapping;
       } // continous to categorical
 
       if (this.uConVBin) {
@@ -432,20 +539,21 @@ export default {
     },
 
     _splitRangeWithBounds(usrRange, n) {
+        if (n < 0) {
+          return 
+        }
         const start = usrRange[0];
         const end = usrRange[usrRange.length - 1];
-        if (n === 0) {
-            return usrRange;
-        }
 
         const step = (end - start) / n;
         const separators = [];
 
-        for (let i = 0; i < n; i++) {
-            const sep = start + step * i 
+
+
+        for (let i = 0; i < n - 1; i++) {
+            const sep = start + step * (i+1) 
             separators.push(parseFloat(sep.toFixed(3)));
         }
-        separators.push(usrRange[usrRange.length-1])
 
         return separators;
     },
@@ -459,13 +567,23 @@ export default {
     },
 
     _getSeptrumSepMarkers(index) {
-      const slicedArr = [this.spectrum[index - 1], this.spectrum[index + 1]];
+      const start = index === 0 ? this.uRange[0] : this.spectrum[index - 1]
+      const end = index === this.spectrum.length - 1 ? this.uRange[1] : this.spectrum[index + 1]
+      const slicedArr = [start, end];
 
       const obj = slicedArr.reduce((accumulator, currentValue) => {
         accumulator[currentValue] = currentValue.toString();
         return accumulator;
       }, {});
 
+      return obj;
+    },
+
+    _getSepDefaultMapping(len) {
+      const obj = {};
+      for (let i = 0; i < len; i++) {
+        obj[i] = '';
+      }
       return obj;
     },
 
@@ -478,7 +596,13 @@ export default {
       }
 
       return newObject;
+    },
+
+    changeSign() {
+      this.scaleSign = this.scaleSign === '+'? '-': '+'
     }
+
+
     
   }  
 
@@ -496,14 +620,14 @@ export default {
 .common-options {
   margin: 10px;
 }
+.other-options{
+  display: flex;
+  flex-direction: column;;
+}
 
 .superscript {
   vertical-align: super;
   font-size: smaller;
-}
-.vs-row {
-  height: 30px;
-  margin: 2%;
 }
 
 
@@ -525,10 +649,6 @@ export default {
 
 .step-dropdown .a-icon i {
   font-size: 18px;
-}
-
-.vs-dropdown-menu .con-input {
-  margin-bottom: 20px;
 }
 
 .step-dropdown .base-content h3 {
@@ -554,4 +674,27 @@ export default {
   display: flex;
   justify-content: space-between;
 }
+.el-text {
+  align-self: center;
+  justify-self: center;
+}
+.el-col {
+  display: flex;
+  justify-content: left;
+}
+.el-row {
+  margin-bottom: 20px;
+}
+
+#sign-select {
+  width: 30px;
+}
+
+.control-tools {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+}
+
 </style>

@@ -47,7 +47,24 @@ Edge types are determined by the source type and the target type. Since we have 
   * This type of edge is designed to be a change to change mapping. That means the relationship indicates whether rise / fall in the source node will trigger rise / fall in the target node.
   * There are various setting modes: `gradient`, `addtion`, `difference`, `value`. `gradient` means the target node will be controlled by a sequence of gradient driving it up / down. `addition` means the effect will be superposed on the effects from the other sources. `difference` means the effect will be a difference value to the history. And `value` means the result will be directly set to upcoming time slots. As you might notice there are some overlaps between difference and gradient. Removing one of them properly will be a todo for this project.
   * `scale` should be set to indicate how significant the effect will be. There are two directions: Positive and Negative. For example the volume of sweating will lower the temperature, so an edge like this should have a negative scale. 
-  
+
+* `categorical` to `continuous`
+  * Mapping from discrete categories to continuous variable. The latter responses to the switch of the former. The switch to the same category will trigger the same effect, no matter what its original category is.
+  * Configuration for this edge type is featured with different scales for each category.
+
+* `binary` to `continuous`
+   * The continuous target will repsonses to the switch from 0 and 1 to otherwise.
+
+* `continuous` to `categorical`
+   * The range of the source variable will be splitted into intervals. Each interval corresponds to one category. User will be asked to define the separators, therefore the intervals will have no gap between one another.
+
+* `categorical` to `categorical`
+   * This edge type is trivial. It simply map one category of the source to one and only one category of the target.
+ 
+* `binary` to `categorical`
+   * This edge type is defined by assigning 0 / 1 to one category respectively.
+ 
+* `
 
 ## Usage
 

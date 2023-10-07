@@ -45,21 +45,34 @@
                   :disable-transitions="false"
                   v-for="chip in valChips"
                   round
+                  size="large"
                   >
                   {{ chip }}
                 </el-tag>
                 <div class="input-button-wrapper">
-                  <el-input
-                    class="tag-input"
-                    v-if="newItemInputVisible"
-                    ref="newItemInput"
-                    v-model="newItemInputValue"
-                    size="small"
-                    @keyup.enter="handleInputConfirm"
-                    @blur="handleInputConfirm"
-                  ></el-input>
-                  <el-button v-else size="small" @click="showInput">
-                    + New Value
+                  <div v-if="newItemInputVisible" class="tag-input">
+                    <el-input 
+                        ref="newItemInput" 
+                        v-model="newItemInputValue" 
+                        @keyup.enter="handleInputConfirm" 
+                        @blur="handleInputBlur">
+                    </el-input>
+                    <el-button @click="handleInputConfirm"
+                               size="small"
+                               type="primary"
+                               
+                               :disabled="newItemInputValue===''"
+                               style="position: absolute; right: 1px; margin: 2px; height: 24px; width:10px; align-self: center;">
+                      <el-icon>
+                        <Select/>
+                      </el-icon>
+                    </el-button>
+                  </div>
+                  <el-button v-else 
+                    @click="showInput" 
+                    style="width:100%"
+                    round>
+                    <el-icon><CirclePlusFilled/></el-icon>&nbsp; Value
                   </el-button>
                 </div>
 
@@ -262,11 +275,29 @@ export default {
     
     handleInputConfirm() {
       if (this.newItemInputValue) {
-        this.valChips.push(this.newItemInputValue)
+        if (!this.valChips.includes(this.newItemInputValue)) {
+            this.valChips.push(this.newItemInputValue);
+        } else {
+          ElMessage({
+            showClose: true,
+            message: 'Duplicated Value',
+            type: 'error',
+          })
+        }
       }
-      this.newItemInputVisible = false;
+      // this.newItemInputVisible = false;
       this.newItemInputValue = '';
+      this.$nextTick(() => {
+        this.$refs.newItemInput.focus();
+      })
     },
+
+    handleInputBlur() {
+      this.newItemInputValue = '';
+      this.newItemInputVisible = false;
+
+    },
+
     showInput() {
       this.newItemInputVisible = true;
       this.$nextTick(() => {
@@ -344,7 +375,12 @@ export default {
 .category-tools {
   display: flex;
   flex-direction: row;
-  margin: 10px;
+  border: 1px solid #9d9d9d;
+  border-radius: 20px;
+  align-items: center;
+  padding-top: 5px;
+  padding-right: 5px;
+  padding-left: 5px;
   align-content: space-evenly;
   justify-content: left;
   flex-wrap: wrap;
@@ -368,7 +404,8 @@ export default {
   min-width: 80px;
 }
 .tag-input{
-  width:100%
+  width:100%;
+  display: inline-flex;
 }
 .control-tools {
   margin-top: 10px;

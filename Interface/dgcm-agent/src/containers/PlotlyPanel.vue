@@ -31,7 +31,7 @@ export default {
       .then(response => {
         this.chartData = response.data.data;
         this.chartLayout = response.data.layout;
-        Plotly.newPlot(this.$refs.plotlyChart, this.chartData, this.chartLayout)
+        Plotly.newPlot(this.$refs.plotlyChart, this.chartData, this.chartLayout, {responsive: true})
       })
       .catch(error => {
         console.error('Error:', error);

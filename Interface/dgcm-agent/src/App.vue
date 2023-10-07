@@ -14,13 +14,14 @@
                   :initialChecked="edgesFilterValues[lag]" 
                   @checkbox-changed="updateFilterValues"
                 />
-
-                <el-checkbox
-                  v-model="all_checked"
-                  :indeterminate="isIndeterminate"
-                  @change="handleCheckAllChange"
-                  >Check all</el-checkbox
-                >
+                <div style="margin-left: 5px; margin-right: 5px;">
+                  <el-checkbox
+                    v-model="all_checked"
+                    :indeterminate="isIndeterminate"
+                    @change="handleCheckAllChange"
+                    >Check all</el-checkbox
+                  >
+                </div>
 
             </div>
           </div>
@@ -208,7 +209,6 @@
   height: 500px; /* Adjust based on your preference */
   border: 1px solid #ddd; /* For visualization */
   border-radius: 20px;
-  padding: 20px;
   margin-top: 20px;
 }
 

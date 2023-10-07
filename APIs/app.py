@@ -335,7 +335,8 @@ def get_plotly_json():
         fig.update_yaxes(title_text=column, row=i+1, col=1)
         
     fig.update_layout(
-        margin=dict(l=40, r=10, t=10, b=10)  # Adjust these values as desired
+        margin=dict(l=40, r=10, t=10, b=10),  # Adjust these values as desired
+        autosize=True
     )
 
     # convert to json

@@ -179,9 +179,8 @@ export default {
       this.currentV = visEdgeData.to;
 
       const eid = visEdgeData.id;
-
       const lag = this.network.body.data.edges.getDataSet().get(eid).lag;
-      this._postEdgeAttr(eid).then(attr => {
+      this._postEdgeAttr(visEdgeData.from, visEdgeData.to, lag).then(attr => {
         this._popEdgeDialog('edit', {
           ...attr,
           ...visEdgeData,
@@ -274,9 +273,9 @@ export default {
       }
     },
 
-    async _postEdgeAttr(edgeID) {
+    async _postEdgeAttr(u, v, lag) {
       try {
-        const response = await apiClient.post('/query/get_edge', {eid: edgeID});
+        const response = await apiClient.post('/query/get_edge', {u: u, v: v, lag: lag});
         return response.data
       } catch (error) {
         console.error('Error posting data:', error);

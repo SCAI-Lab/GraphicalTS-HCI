@@ -223,13 +223,17 @@ def add_edge():
 def get_edge():
     global mem_dgcm
     data = request.get_json()
-    if 'eid' not in data:
-        return 'Error: Missing parameters eid in the request JSON.', 400
+    # if 'eid' not in data:
+    #     return 'Error: Missing parameters eid in the request JSON.', 400
     
-    eid = EdgeID.from_string(data['eid'])
+    # eid = EdgeID.from_string(data['eid'])
                       
-    lag, u = eid.lag_origins[0]
-    v = eid.target
+    # lag, u = eid.lag_origins[0]
+    # v = eid.target
+    
+    u = data['u']
+    v = data['v']
+    lag = data['lag']
     
     response_data = mem_dgcm[u][v][lag]
     return jsonify(response_data), 200

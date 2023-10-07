@@ -124,19 +124,21 @@
         <h3>Options for Mapping Continuous to Categorical</h3>
         <div class="spectrum-tools">
           <div class="flex-container">
-            <el-row :gutter="5" style="justify-content: center;">
-              <el-col :span="3"><el-text class="mx-1" size="small">{{ uRange[0] }}</el-text></el-col>
-              <el-col v-for="_, index in mapping" 
-                      :key="index" 
-                      :span="index < spectrum.length? Math.round(38/(2*Object.keys(mapping).length - 1)): 
-                                                      Math.round(19/(2*Object.keys(mapping).length - 1)) ">
-
-                <el-col :span="index < spectrum.length? 12 : 24">
-                  <el-select v-model="mapping[index]" @change="(value) => {
-                    console.log(value);
-                  }">
+              <el-row>
+                <el-col :span="3" style="justify-content: right;"><el-text tag="b"> Start</el-text></el-col>
+                <el-col :span="16" style="justify-content: center;"><el-text tag="b">Category</el-text></el-col>
+                <el-col :span="5" style="justify-content: center;"><el-text tag="b"> End</el-text></el-col>
+              </el-row>
+              <el-row v-for="_, index in mapping" 
+                      :key="index">
+                <el-col :span="3" style="justify-content: right;">
+                  <el-text class="mx-1" size="small">{{ index==='0'? uRange[0]: spectrum[parseInt(index)-1] }}</el-text>
+                </el-col>
+                
+                <el-col :span="16" style="justify-content: center;">
+                  <el-select v-model="mapping[index]" clearable>
                     <el-option
-                      v-for="(cItem, cInd) in keysToLocate"
+                      v-for="(cInd, cItem) in nonLocatedV"
                       :key="cInd"
                       :label="cItem"
                       :value="cItem"
@@ -144,14 +146,15 @@
                   </el-select>
                 </el-col>
 
-                <el-col :span="12" v-if="index < spectrum.length">
-                  <el-dropdown size="small">
-                    <span class="el-dropdown-link">
-                      {{ spectrum[parseInt(index)] }}
-                      <el-icon class="el-icon--right">
-                        <arrow-down />
-                      </el-icon>
-                    </span>
+                <el-col :span="5" style="justify-content: right;
+                                         align-items: center">
+                  <el-dropdown v-if="parseInt(index) < Object.keys(mapping).length-1"
+                    size="small"
+                    split-button
+                    type="primary"
+                    >
+                    {{ spectrum[parseInt(index)] }}
+
                     <template #dropdown>
                       <el-dropdown-menu>
                         <el-dropdown-item disabled>
@@ -167,12 +170,15 @@
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
+                  <el-text v-else
+                    class="mx-1" 
+                    size="small"
+                  >
+                          {{ uRange[1] }}
+                  </el-text>
                 </el-col>
 
-              </el-col>
-              <el-col :span="3"><el-text class="mx-1" size="small">{{ uRange[1] }}</el-text></el-col>
-            </el-row>
-            
+              </el-row>  
           </div>
         </div>
       </div>
@@ -271,7 +277,18 @@ export default {
       }
 
       return marks;
+    },
+
+    nonLocatedV() {
+      let result = {};
+      for (let key in this.vValEncode) {
+        if (!Object.values(this.mapping).includes(key)) {
+          result[key] = this.vValEncode[key];
+        }
+      }
+      return result;
     }
+
 
   },
 
@@ -444,6 +461,13 @@ export default {
       this.uRange = dbEdge.uRange !== undefined ? dbEdge.uRange : defaults.uRange;
       if (dbEdge.spectrum !== undefined) {
         this.spectrum = dbEdge.spectrum;
+        if (dbEdge.mapping !== undefined) { 
+          const vEncVal = this._reverseObject(this.vValEncode);
+          this.mapping = {};
+          for (let key in dbEdge.mapping) { 
+            this.mapping[key] = vEncVal[dbEdge.mapping[key]];
+          }
+        }
       }
       else {
         console.log(this.vValEncode)
@@ -453,6 +477,7 @@ export default {
       if (Object.keys(this.mapping).length === 0 && this.uConVCat) {
         this.mapping = this._getSepDefaultMapping(this.spectrum.length+1);
       }
+
       this.keysToLocate = Object.keys(this.vValEncode);
       console.log(this.spectrum);
       console.log(this.mapping);
@@ -511,7 +536,8 @@ export default {
 
       if (this.uConVCat) {
         attr.spectrum = this.spectrum;
-        attr.mapping = this.mapping;
+        attr.mapping = this._mergeMapping();
+        console.log(attr.mapping);
       } // continous to categorical
 
       if (this.uConVBin) {
@@ -598,6 +624,24 @@ export default {
       return newObject;
     },
 
+    _mergeMapping() {
+      const mergedObject = {};
+
+      for (let key in this.mapping) {
+          mergedObject[key] = this.vValEncode[this.mapping[key]];
+      }
+
+      return mergedObject;
+    },
+
+    _reverseObject(obj) {
+      const reversed = {};
+      for (let key in obj) {
+          reversed[obj[key]] = key;
+      }
+      return reversed;
+    },
+
     changeSign() {
       this.scaleSign = this.scaleSign === '+'? '-': '+'
     }
@@ -612,11 +656,7 @@ export default {
 </script>
 
 <style scoped>
-.edge-editor-popup {
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-radius: 5px;
-}
+
 .common-options {
   margin: 10px;
 }
@@ -625,44 +665,9 @@ export default {
   flex-direction: column;;
 }
 
-.superscript {
-  vertical-align: super;
-  font-size: smaller;
-}
 
 
 
-.step-dropdown {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 80px;
-}
-
-.step-dropdown .a-icon {
-  outline: none;
-  text-decoration: none !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step-dropdown .a-icon i {
-  font-size: 18px;
-}
-
-.step-dropdown .base-content h3 {
-  color: rgba(0, 0, 0, 0.5);
-  text-align: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding-bottom: 5px;
-}
-
-.step-dropdown .base-content p {
-  max-width: 200px;
-  font-size: 11px;
-  padding: 5px;
-}
 .slider-container {
   min-width: 200px; 
   margin-left: 18px; 
@@ -673,6 +678,7 @@ export default {
 .flex-container {
   display: flex;
   justify-content: space-between;
+  flex-direction:column
 }
 .el-text {
   align-self: center;
